@@ -15,13 +15,14 @@
         <script src="syntax.js"></script>
     </head>
     <body>
-        <pre>
-            Press Ctrl+Space to see available objects
-            Syntax:
-                Object – add one Object
-                Number Object – add Number of Objects
-                Number * Number Object – add Rectangle of Objects
-        </pre>
+<!-- Don't tabulate  -->
+<pre>
+Press Ctrl+Space to see available objects
+Syntax:
+    Object – add one Object
+    Number Object – add Number of Objects
+    Number * Number Object – add Rectangle of Objects
+</pre>
         <div>Results/Cycle:
             <pre id="results"></pre>
         </div>
@@ -44,7 +45,8 @@
 
         const cm = CodeMirror(document.getElementById("code"), {
             lineNumbers: true,
-            extraKeys: {"Ctrl-Space": "autocomplete"}
+            extraKeys: {"Ctrl-Space": "autocomplete"},
+            value: "5 Dup\nAlgaeDeoxydizer\nManualGenerator"
         });
         cm.on("change", onCalculate);
 
@@ -67,5 +69,8 @@
                 }
             }
         }
+
+        // Calculate current value
+        onCalculate();
     </script>
 </html>

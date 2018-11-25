@@ -53,6 +53,8 @@ TMP.prototype.calculate = function(){
     }
 };
 
+/** Oxygen */
+
 function AlgaeDeoxydizer() {}
 AlgaeDeoxydizer.prototype = Object.create(Item.prototype);
 AlgaeDeoxydizer.prototype.constructor = Dup;
@@ -60,7 +62,7 @@ AlgaeDeoxydizer.prototype.constructor = Dup;
 AlgaeDeoxydizer.prototype.calculate = function(){
     return {
         power: -120,
-        heat: 1.5,
+        heat: 1.5 * CYCLE,
         oxygen: new Elem(500*CYCLE, 30),
         aglae: new Elem(-550*CYCLE)
 
@@ -100,7 +102,7 @@ CarbonSkimmer.prototype.constructor = Dup;
 CarbonSkimmer.prototype.calculate = function(){
     return {
         power: -120,
-        heat: 1,
+        heat: 1 * CYCLE,
         water: new Elem(-1000 * CYCLE),
         polluted_water: new Elem(1000 * CYCLE, 40),
         carbon_dioxide: new Elem(-300 * CYCLE),
@@ -114,21 +116,116 @@ Electrolyzer.prototype.constructor = Dup;
 Electrolyzer.prototype.calculate = function(){
     return {
         power: 120,
-        heat: 1.25,
+        heat: 1.25 * CYCLE,
         water: new Elem(-1000 * CYCLE),
         oxygen: new Elem(888 * CYCLE, 70),
         hydrogen: new Elem(122 * CYCLE, 70)
     }
 };
 
+/** Generators */
+
+function ManualGenerator() {}
+ManualGenerator.prototype = Object.create(Item.prototype);
+ManualGenerator.prototype.constructor = Dup;
+
+ManualGenerator.prototype.calculate = function(){
+    return {
+        power: 400,
+        heat: 1 * CYCLE
+    }
+};
+
+function CoalGenerator() {}
+CoalGenerator.prototype = Object.create(Item.prototype);
+CoalGenerator.prototype.constructor = Dup;
+
+CoalGenerator.prototype.calculate = function(){
+    return {
+        power : 600,
+        heat: 9 * CYCLE,
+        carbon_dioxide: new Elem(20 * CYCLE, 36.85),
+        coal: new Elem(-1000 * CYCLE)
+    }
+};
+
+function HydrogenGenerator() {}
+HydrogenGenerator.prototype = Object.create(Item.prototype);
+HydrogenGenerator.prototype.constructor = Dup;
+
+HydrogenGenerator.prototype.calculate = function(){
+    return {
+        power: 800,
+        heat: 4 * CYCLE,
+        hydrogen: new Elem(-100 * CYCLE)
+    }
+};
+
+function NaturalGasGenerator() {}
+NaturalGasGenerator.prototype = Object.create(Item.prototype);
+NaturalGasGenerator.prototype.constructor = Dup;
+
+NaturalGasGenerator.prototype.calculate = function(){
+    return {
+        power: 800,
+        heat: 10 * CYCLE,
+        polluted_water: new Elem(67.5 * CYCLE), // BUILDING
+        carbon_dioxide: new Elem(22.5 * CYCLE) // BUILDING
+    }
+};
+
+function PetroleumGenerator() {}
+PetroleumGenerator.prototype = Object.create(Item.prototype);
+PetroleumGenerator.prototype.constructor = Dup;
+
+PetroleumGenerator.prototype.calculate = function(){
+    return {
+        power: 2000,
+        heat: 20 * CYCLE,
+        polluted_water: new Elem(750 * CYCLE), // BUILDING
+        petroleum: new Elem(-2000 * CYCLE),
+        carbon_dioxide: new Elem(500 * CYCLE) // BUILDING
+    }
+};
+
+function SteamTurbine() {}
+SteamTurbine.prototype = Object.create(Item.prototype);
+SteamTurbine.prototype.constructor = Dup;
+
+SteamTurbine.prototype.calculate = function(){
+    return {
+        power: 2000,
+        // steam: 10000 delta temp -151.85C
+    }
+};
+
+function SolarPower() {}
+SolarPower.prototype = Object.create(Item.prototype);
+SolarPower.prototype.constructor = Dup;
+
+SolarPower.prototype.calculate = function(){
+    return {
+        power: 380
+    }
+};
+
 function Base() {
     this.objects = {
         "Dup": Dup,
+
         "AlgaeDeoxydizer": AlgaeDeoxydizer,
         "AlgaeTerrarium": AlgaeTerrarium,
         "Deodorizer": Deodorizer,
         "CarbonSkimmer": CarbonSkimmer,
-        "Electrolyzer": Electrolyzer
+        "Electrolyzer": Electrolyzer,
+
+        "ManualGenerator" : ManualGenerator,
+        "CoalGenerator" : CoalGenerator,
+        "HydrogenGenerator" : HydrogenGenerator,
+        "NaturalGasGenerator" : NaturalGasGenerator,
+        "PetroleumGenerator" : PetroleumGenerator,
+        "SteamTurbine" : SteamTurbine,
+        "SolarPower" : SolarPower
     }
 
     this.items = [];
