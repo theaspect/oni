@@ -52,15 +52,21 @@ Syntax:
 
         function onCalculate(){
             try{
-                document.getElementById("results").innerText = JSON.stringify(
-                    parser.parse(cm.getValue()),
-                    function(k,v){
-                        if(v instanceof Elem){
-                            return v.toString();
-                        }else{
-                            return v;
-                        }
-                    }, "  ");
+                const result = parser.parse(cm.getValue());
+                const html = Object.keys(result).map((key) => {
+                    const el = result[key];
+                    const amt = (el instanceof Elem) ? el.toString() : el;
+
+                    if(parseInt(amt) > 0){
+                        return `<div style='color: green'><b>${key}:</b> ${amt}</div>`
+                    }else if(parseInt(amt) < 0){
+                        return `<div style='color: red'><b>${key}:</b> ${amt}</div>`
+                    }else{
+                        return `<div style='color: black'><b>${key}:</b> ${amt}</div>`
+                    }
+                }).join("")
+
+                document.getElementById("results").innerHTML = html;
             }catch(e){
                 if(e instanceof parser.SyntaxError){
                     document.getElementById("results").innerText = `Line ${e.location.start.line} ${e.message}`;

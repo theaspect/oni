@@ -17,7 +17,7 @@ Elem.prototype.add = function(add) {
 }
 Elem.prototype.toString = function() {
     if (this.mass == 0 ){
-        return undefined;
+        return "0kg";
     } else if (this.temp == null){
         return "" + (this.mass / 1000) + "kg";
     }else{
