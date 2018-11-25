@@ -15,17 +15,36 @@
         <script src="syntax.js"></script>
     </head>
     <body>
-        <div>
-            <button onclick="onCalculate()">Calculate</button>
-        </div>
+        <pre>
+            Press Ctrl+Space to see available objects
+            Syntax:
+                Object – add one Object
+                Number Object – add Number of Objects
+                Number * Number Object – add Rectangle of Objects
+        </pre>
         <div>Results/Cycle:
             <pre id="results"></pre>
         </div>
         <div id="code"></div>
     </body>
     <script>
+        function showItems(editor, options){
+            const cur = editor.getCursor();
+            const token = editor.getTokenAt(cur);
+            return {
+                list: Object.keys(new Base().objects),
+                from: CodeMirror.Pos(cur.line, token.start),
+                to: CodeMirror.Pos(cur.line, token.end)
+            }
+        } 
+        CodeMirror.commands.autocomplete = function(cm) {
+            cm.showHint({hint: CodeMirror.hint.items});
+        }
+        CodeMirror.registerHelper("hint", "items", showItems);
+
         const cm = CodeMirror(document.getElementById("code"), {
-            lineNumbers: true
+            lineNumbers: true,
+            extraKeys: {"Ctrl-Space": "autocomplete"}
         });
         cm.on("change", onCalculate);
 
