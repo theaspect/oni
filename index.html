@@ -4,12 +4,9 @@
 
         <script src="lib/codemirror.js"></script>
         <link rel="stylesheet" href="lib/codemirror.css">
-        <script src="mode/javascript/javascript.js"></script>
 
         <link rel="stylesheet" href="../addon/hint/show-hint.css">
         <script src="addon/hint/show-hint.js"></script>
-        <script src="addon/hint/javascript-hint.js"></script>
-        <script src="addon/mode/simple.js"></script>
 
         <script src="base.js"></script>
         <script src="syntax.js"></script>
@@ -24,6 +21,7 @@ Syntax:
     Number * Number Object – add Rectangle of Objects
 </pre>
         <div>Results/Cycle:
+            <div style="color: red" id="error"></div>
             <pre id="results"></pre>
         </div>
         <div id="code"></div>
@@ -32,8 +30,10 @@ Syntax:
         function showItems(editor, options){
             const cur = editor.getCursor();
             const token = editor.getTokenAt(cur);
+            const dict = new Base();
+            const items = [].concat(Object.keys(dict.objects), dict.flags, dict.properties);
             return {
-                list: Object.keys(new Base().objects),
+                list: items.filter((v) => v.startsWith(token.string.trim())),
                 from: CodeMirror.Pos(cur.line, token.start),
                 to: CodeMirror.Pos(cur.line, token.end)
             }
@@ -46,7 +46,7 @@ Syntax:
         const cm = CodeMirror(document.getElementById("code"), {
             lineNumbers: true,
             extraKeys: {"Ctrl-Space": "autocomplete"},
-            value: "5 Dup\nAlgaeDeoxydizer\nManualGenerator"
+            value: "5 Dup\n3*4 AlgaeTerrarium\nAlgaeTerrarium lighted\nManualGenerator\nNaturalGasGenerator temp=30"
         });
         cm.on("change", onCalculate);
 
@@ -67,11 +67,14 @@ Syntax:
                 }).join("")
 
                 document.getElementById("results").innerHTML = html;
+                document.getElementById("error").innerText = "";
             }catch(e){
+                document.getElementById("results").innerText = "";
                 if(e instanceof parser.SyntaxError){
-                    document.getElementById("results").innerText = `Line ${e.location.start.line} ${e.message}`;
+                    document.getElementById("error").innerText = `Line ${e.location.start.line} ${e.message}`;
                 }else{
-                    document.getElementById("results").innerText = e.message;
+                    
+                    document.getElementById("error").innerText = e.message;
                 }
             }
         }

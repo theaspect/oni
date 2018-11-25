@@ -11,7 +11,7 @@ Elem.prototype.add = function(add) {
         return new Elem(this.mass+add.mass, this.temp || add.temp)
     } else {
         return new Elem(this.mass+add.mass, 
-            (this.mass * this.temp + add.mass * add.temp) / this.mass + add.mass
+            (this.mass * this.temp + add.mass * add.temp) / (this.mass + add.mass)
         )
     }
 }
@@ -26,12 +26,16 @@ Elem.prototype.toString = function() {
 }
 
 
-function Item() {}
+function Item(params) {
+    this.params = params || {}
+}
 Item.prototype.calculate = function () {
     return {};
 }
 
-function Dup() {}
+function Dup(params) {
+    Item.call(this, params)
+}
 Dup.prototype = Object.create(Item.prototype);
 Dup.prototype.constructor = Dup;
 
@@ -44,7 +48,9 @@ Dup.prototype.calculate = function(){
     }
 };
 
-function TMP() {}
+function TMP(params) {
+    Item.call(this, params)
+}
 TMP.prototype = Object.create(Item.prototype);
 TMP.prototype.constructor = Dup;
 
@@ -55,7 +61,9 @@ TMP.prototype.calculate = function(){
 
 /** Oxygen */
 
-function AlgaeDeoxydizer() {}
+function AlgaeDeoxydizer(params) {
+    Item.call(this, params)
+}
 AlgaeDeoxydizer.prototype = Object.create(Item.prototype);
 AlgaeDeoxydizer.prototype.constructor = Dup;
 
@@ -69,20 +77,24 @@ AlgaeDeoxydizer.prototype.calculate = function(){
     }
 };
 
-function AlgaeTerrarium() {}
+function AlgaeTerrarium(params) {
+    Item.call(this, params)
+}
 AlgaeTerrarium.prototype = Object.create(Item.prototype);
 AlgaeTerrarium.prototype.constructor = Dup;
 
 AlgaeTerrarium.prototype.calculate = function(){
     return {
         polluted_water: new Elem(290.33 * CYCLE, 30),
-        oxygen: new Elem(40*CYCLE, 30),
+        oxygen: new Elem((this.params["lighted"] ? 44 : 40)*CYCLE, 30),
         carbon_dioxide: new Elem(-0.33333*CYCLE),
         aglae: new Elem(-30*CYCLE)
     }
 };
 
-function Deodorizer() {}
+function Deodorizer(params) {
+    Item.call(this, params)
+}
 Deodorizer.prototype = Object.create(Item.prototype);
 Deodorizer.prototype.constructor = Dup;
 
@@ -95,7 +107,9 @@ Deodorizer.prototype.calculate = function(){
     }
 };
 
-function CarbonSkimmer() {}
+function CarbonSkimmer(params) {
+    Item.call(this, params)
+}
 CarbonSkimmer.prototype = Object.create(Item.prototype);
 CarbonSkimmer.prototype.constructor = Dup;
 
@@ -109,7 +123,9 @@ CarbonSkimmer.prototype.calculate = function(){
     }
 };
 
-function Electrolyzer() {}
+function Electrolyzer(params) {
+    Item.call(this, params)
+}
 Electrolyzer.prototype = Object.create(Item.prototype);
 Electrolyzer.prototype.constructor = Dup;
 
@@ -125,7 +141,9 @@ Electrolyzer.prototype.calculate = function(){
 
 /** Generators */
 
-function ManualGenerator() {}
+function ManualGenerator(params) {
+    Item.call(this, params)
+}
 ManualGenerator.prototype = Object.create(Item.prototype);
 ManualGenerator.prototype.constructor = Dup;
 
@@ -136,7 +154,9 @@ ManualGenerator.prototype.calculate = function(){
     }
 };
 
-function CoalGenerator() {}
+function CoalGenerator(params) {
+    Item.call(this, params)
+}
 CoalGenerator.prototype = Object.create(Item.prototype);
 CoalGenerator.prototype.constructor = Dup;
 
@@ -149,7 +169,9 @@ CoalGenerator.prototype.calculate = function(){
     }
 };
 
-function HydrogenGenerator() {}
+function HydrogenGenerator(params) {
+    Item.call(this, params)
+}
 HydrogenGenerator.prototype = Object.create(Item.prototype);
 HydrogenGenerator.prototype.constructor = Dup;
 
@@ -161,7 +183,9 @@ HydrogenGenerator.prototype.calculate = function(){
     }
 };
 
-function NaturalGasGenerator() {}
+function NaturalGasGenerator(params) {
+    Item.call(this, params)
+}
 NaturalGasGenerator.prototype = Object.create(Item.prototype);
 NaturalGasGenerator.prototype.constructor = Dup;
 
@@ -169,12 +193,15 @@ NaturalGasGenerator.prototype.calculate = function(){
     return {
         power: 800,
         heat: 10 * CYCLE,
-        polluted_water: new Elem(67.5 * CYCLE), // BUILDING
-        carbon_dioxide: new Elem(22.5 * CYCLE) // BUILDING
+        natural_gas: new Elem(-90 * CYCLE),
+        polluted_water: new Elem(67.5 * CYCLE, this.params["temp"]||undefined),
+        carbon_dioxide: new Elem(22.5 * CYCLE, this.params["temp"]||undefined)
     }
 };
 
-function PetroleumGenerator() {}
+function PetroleumGenerator(params) {
+    Item.call(this, params)
+}
 PetroleumGenerator.prototype = Object.create(Item.prototype);
 PetroleumGenerator.prototype.constructor = Dup;
 
@@ -182,13 +209,15 @@ PetroleumGenerator.prototype.calculate = function(){
     return {
         power: 2000,
         heat: 20 * CYCLE,
-        polluted_water: new Elem(750 * CYCLE), // BUILDING
+        polluted_water: new Elem(750 * CYCLE, this.params["temp"]||undefined),
         petroleum: new Elem(-2000 * CYCLE),
-        carbon_dioxide: new Elem(500 * CYCLE) // BUILDING
+        carbon_dioxide: new Elem(500 * CYCLE, this.params["temp"]||undefined)
     }
 };
 
-function SteamTurbine() {}
+function SteamTurbine(params) {
+    Item.call(this, params)
+}
 SteamTurbine.prototype = Object.create(Item.prototype);
 SteamTurbine.prototype.constructor = Dup;
 
@@ -199,7 +228,9 @@ SteamTurbine.prototype.calculate = function(){
     }
 };
 
-function SolarPower() {}
+function SolarPower(params) {
+    Item.call(this, params)
+}
 SolarPower.prototype = Object.create(Item.prototype);
 SolarPower.prototype.constructor = Dup;
 
@@ -209,7 +240,74 @@ SolarPower.prototype.calculate = function(){
     }
 };
 
+/** Power */
+
+function TinyBattery(params) {
+    Item.call(this, params)
+}
+TinyBattery.prototype = Object.create(Item.prototype);
+TinyBattery.prototype.constructor = Dup;
+
+TinyBattery.prototype.calculate = function(){
+    return {
+        heat: 1.25 * CYCLE
+    }
+};
+
+function Battery(params) {
+    Item.call(this, params)
+}
+Battery.prototype = Object.create(Item.prototype);
+Battery.prototype.constructor = Dup;
+
+Battery.prototype.calculate = function(){
+    return {
+        heat: 1.25 * CYCLE
+    }
+};
+
+function SmartBattery(params) {
+    Item.call(this, params)
+}
+SmartBattery.prototype = Object.create(Item.prototype);
+SmartBattery.prototype.constructor = Dup;
+
+SmartBattery.prototype.calculate = function(){
+    return {
+        heat: 0.5 * CYCLE
+    }
+};
+
+function SmallPowerTransformer(params) {
+    Item.call(this, params)
+}
+SmallPowerTransformer.prototype = Object.create(Item.prototype);
+SmallPowerTransformer.prototype.constructor = Dup;
+
+SmallPowerTransformer.prototype.calculate = function(){
+    return {
+        heat: 1 * CYCLE
+    }
+};
+
+function PowerTransformer(params) {
+    Item.call(this, params)
+}
+PowerTransformer.prototype = Object.create(Item.prototype);
+PowerTransformer.prototype.constructor = Dup;
+
+PowerTransformer.prototype.calculate = function(){
+    return {
+        heat: 1 * CYCLE
+    }
+};
+
+/** Base */
+
 function Base() {
+    this.flags = ["lighted"];
+    this.properties = ["temp"];
+
     this.objects = {
         "Dup": Dup,
 
@@ -225,7 +323,13 @@ function Base() {
         "NaturalGasGenerator" : NaturalGasGenerator,
         "PetroleumGenerator" : PetroleumGenerator,
         "SteamTurbine" : SteamTurbine,
-        "SolarPower" : SolarPower
+        "SolarPower" : SolarPower,
+
+        "TinyBattery" : TinyBattery,
+        "Battery" : Battery,
+        "SmartBattery" : SmartBattery,
+        "SmallPowerTransformer" : SmallPowerTransformer,
+        "PowerTransformer" : PowerTransformer
     }
 
     this.items = [];
@@ -250,7 +354,7 @@ Base.prototype.calculate = function() {
     return this.items.reduce (this.merge, {});
 };
 
-Base.prototype.addItem = function (item, cnt) {
+Base.prototype.addItem = function (item, cnt, params) {
     const ctor = Object.keys(this.objects).find(function(k){
         return k.toLowerCase() === item.toLowerCase();
     });
@@ -258,7 +362,7 @@ Base.prototype.addItem = function (item, cnt) {
     if(ctor == null) {throw new Error("Unknow object " + item + ". Valid are: " + Object.keys(this.objects).join(", "))}
 
     for(i=0;i<cnt;i++){
-        this.items.push(new this.objects[ctor]());
+        this.items.push(new this.objects[ctor](params));
     }
     return this;
 };
