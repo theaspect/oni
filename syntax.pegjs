@@ -10,21 +10,28 @@
     const base = new Base();
 }
 
-Expression = objects: (
-	Dup
-    ) *
-    {
-    return base.calculate();
-    }
+Expression = objects: _ (
+	    Object
+    ) * _ { return base.calculate(); }
+    
 
-Dup = count: (Square / Number)? _ "Dup"i
-    { return base.addDup(getOrDefault(count, 1))}
+Object = count: (Square / Number)? _ item: String
+    {
+        try{
+            return base.addItem(item, getOrDefault(count, 1));
+        }catch(e){
+            error(e.message);
+        }
+    }
 
 Square = first:Number _ [x*] _ second:Number
     { return first * second }
 
 Number = _ [0-9]+ 
     { return toNumber(text()) }
+
+String = _ [a-zA-Z]+
+    { return text() }
 
 _ "whitespace"
   = [ \t\n\r]*

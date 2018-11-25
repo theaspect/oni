@@ -19,7 +19,7 @@
             <button onclick="onCalculate()">Calculate</button>
         </div>
         <div>Results/Cycle:
-            <div id="results"></div>
+            <pre id="results"></pre>
         </div>
         <div id="code"></div>
     </body>
@@ -33,9 +33,19 @@
             try{
                 document.getElementById("results").innerText = JSON.stringify(
                     parser.parse(cm.getValue()),
-                    null, "  ");
+                    function(k,v){
+                        if(v instanceof Elem){
+                            return v.toString();
+                        }else{
+                            return v;
+                        }
+                    }, "  ");
             }catch(e){
-                document.getElementById("results").innerText = e.message;
+                if(e instanceof parser.SyntaxError){
+                    document.getElementById("results").innerText = `Line ${e.location.start.line} ${e.message}`;
+                }else{
+                    document.getElementById("results").innerText = e.message;
+                }
             }
         }
     </script>
