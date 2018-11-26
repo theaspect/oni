@@ -18,15 +18,28 @@ Start = NL* Expression (NL Expression)* NL?
 
 Expression = 
     Supply
+    / Cook
     / Object
+    / Comment
+
+Comment "Comment" = "//" [^\r\n]* _
+
+Cook "Cook" = "Cook"i _ count: Number? _ food: FoodName
+    {
+        return base.addFood(food, getOrDefault(count, 1))
+    }
+
+FoodName "Food Name" = food: String
+    & {
+        return Object.keys(base.food).includes(food);
+    }
+    {
+        return text()
+    }
 
 Object "Object" = count: (Square / Number)? _ item: ObjectName _ params: (_ Property / Flag)* _
     {
-        try{
-            return base.addItem(item, getOrDefault(count, 1), Object.assign({}, ...params.map((e) => e[1])));
-        }catch(e){
-            error(e.message);
-        }
+        return base.addItem(item, getOrDefault(count, 1), Object.assign({}, ...params.map((e) => e[1])));
     }
 
 ObjectName "Object name" = item: String
@@ -37,13 +50,9 @@ ObjectName "Object name" = item: String
         return text();
     }
 
-Supply "Supply" = "Supply"i _ element: Element _ params: (_ Property / Flag)* _
+Supply "Supply" = "Supply"i _ amount: Number? _ element: Element _ params: (_ Property / Flag)* _
     {
-        try{
-            return base.addSupply(element, Object.assign({}, ...params.map((e) => e[1])));
-        }catch(e){
-            error(e.message);
-        }
+        return base.addSupply(element, amount, Object.assign({}, ...params.map((e) => e[1])));
     }
 
 Element "Element" = element: String
@@ -54,7 +63,7 @@ Element "Element" = element: String
         return text();
     }
 
-Property = property:PropertyName _ "=" _ value:Float
+Property = property:PropertyName _ "=" _ value: (Float / String)
     {
         const result = {}
         result[property] = value;

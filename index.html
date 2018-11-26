@@ -14,34 +14,46 @@
 
         <script src="base.js"></script>
         <script src="syntax.js"></script>
+        <style>
+            .CodeMirror {
+                border: 1px solid #eee;
+                height: auto;
+            }
+        </style>
     </head>
     <body>
+    <h4>Oxygen Not Included Resources Calculator v0.1</h4>
     <div>
         <b>Syntax: </b>
         press Ctrl+Space to see available objects
         <div>
-            <div><code>Supply element mass=Number temp=Number</code> - add supply of element with optional mass in gramms and optional temperature</div>
-            <div><code>Object</code> - add one Object</div>
-            <div><code>Number Object</code> - add Number of Objects</div>
-            <div><code>Number * Number Object</code> - add Rectangle of Objects</div>
+            <div><code>Supply [Mass] element [temp=Number]</code> - add supply of element with optional mass in gramms and optional temperature</div>
+            <div><code>[Number] Object</code> - add Number of Objects, no number means 1</div>
+            <div><code>Cook [Number] Food</code> - cook Number of Food, no number means 1</div>
             <div><b>Objects: </b><span id="known_objects"></span></div>
             <div><b>Elements: </b><span id="known_elements"></span></div>
+            <div><b>Food: </b><span id="known_food"></span></div>
             <div><b>Flags: </b><span id="known_flags"></span></div>
             <div><b>Properties: </b><span id="known_properties"></span></div>
         </div>
         <br/>
-        <div><b>Results per Cycle (600s): </b>
-            <pre id="results"></pre>
-            <div style="color: red" id="error"></div>
+        <div>
+            <div style="width:70%; float: left">
+                <div id="code"></div>
+            </div>
+            <div style="width:30%; float: left">
+                    <b>Results per Cycle (600s): </b>
+                    <pre id="results"></pre>
+                    <div style="color: red" id="error"></div>
+            </div>
         </div>
-        <div id="code"></div>
     </body>
     <script>
         function showItems(editor, options){
             const cur = editor.getCursor();
             const token = editor.getTokenAt(cur);
             const dict = new Base();
-            const items = [].concat(dict.keywords, Object.keys(dict.objects), dict.flags, dict.properties, dict.elements);
+            const items = [].concat(dict.keywords, Object.keys(dict.objects), dict.flags, dict.properties, dict.elements, Object.keys(dict.food));
             return {
                 list: items.filter((v) => v.startsWith(token.string.trim())),
                 from: CodeMirror.Pos(cur.line, token.start),
@@ -72,8 +84,30 @@
 
         const cm = CodeMirror(document.getElementById("code"), {
             lineNumbers: true,
+            viewportMargin: Infinity,
             extraKeys: {"Ctrl-Space": "autocomplete"},
-            value: "Supply algae\nSupply natural_gas mass=54000 temp=30\n5 Dup\n3*4 AlgaeTerrarium\nAlgaeTerrarium lighted\nManualGenerator\nNaturalGasGenerator temp=30",
+            value: [
+                "// Supply any available element",
+                "Supply algae",
+                "// You can specify mass and/or temperature",
+                "Supply 54000 natural_gas temp=30",
+                "// Add some water for plants",
+                "Supply 260000 water",
+                "// You can add multiple objects at once",
+                "5 Dup",
+                "11 AlgaeTerrarium",
+                "// If you don't specify number one object will be added",
+                "AlgaeTerrarium",
+                "// Terrarium has lighted flag which increase oxygen production",
+                "AlgaeTerrarium lighted",
+                "ManualGenerator",
+                "// Natural gas generator outputs with temperature of building, so you can specify temperature",
+                "NaturalGasGenerator temp=30",
+                "// Plant some berries",
+                "13 BristleBlossom",
+                "// And cook it",
+                "Cook 3 gristle_berry",
+            ].join("\n"),
             mode: "simplemode"
         });
         cm.on("change", onCalculate);
@@ -83,7 +117,7 @@
                 const result = parser.parse(cm.getValue());
                 const html = Object.keys(result).map((key) => {
                     const el = result[key];
-                    const amt = (el instanceof Elem) ? el.toString() : el;
+                    const amt = (el instanceof Elem) ? el.toString() : Math.round10(el, -2);
 
                     if(parseInt(amt) > 0){
                         return `<div style='color: green'><b>${key}:</b> ${amt}</div>`
@@ -108,9 +142,11 @@
 
         // Calculate current value
         onCalculate();
-        document.getElementById("known_objects").innerText = Object.keys(new Base().objects).join(" ");
-        document.getElementById("known_elements").innerText = new Base().elements.join(" ");
-        document.getElementById("known_flags").innerText = new Base().flags.join(" ");
-        document.getElementById("known_properties").innerText = new Base().properties.join(" ");
+        const dict = new Base();
+        document.getElementById("known_objects").innerText = Object.keys(dict.objects).join(" ");
+        document.getElementById("known_elements").innerText = dict.elements.join(" ");
+        document.getElementById("known_food").innerText = Object.keys(dict.food).join(" ");
+        document.getElementById("known_flags").innerText = dict.flags.join(" ");
+        document.getElementById("known_properties").innerText = dict.properties.join(" ");
     </script>
 </html>

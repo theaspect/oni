@@ -1,5 +1,54 @@
 const CYCLE = 600;
 
+(function() {
+    /**
+     * https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Global_Objects/Math/round
+     * Корректировка округления десятичных дробей.
+     *
+     * @param {String}  type  Тип корректировки.
+     * @param {Number}  value Число.
+     * @param {Integer} exp   Показатель степени (десятичный логарифм основания корректировки).
+     * @returns {Number} Скорректированное значение.
+     */
+    function decimalAdjust(type, value, exp) {
+        // Если степень не определена, либо равна нулю...
+        if (typeof exp === 'undefined' || +exp === 0) {
+        return Math[type](value);
+        }
+        value = +value;
+        exp = +exp;
+        // Если значение не является числом, либо степень не является целым числом...
+        if (isNaN(value) || !(typeof exp === 'number' && exp % 1 === 0)) {
+        return NaN;
+        }
+        // Сдвиг разрядов
+        value = value.toString().split('e');
+        value = Math[type](+(value[0] + 'e' + (value[1] ? (+value[1] - exp) : -exp)));
+        // Обратный сдвиг
+        value = value.toString().split('e');
+        return +(value[0] + 'e' + (value[1] ? (+value[1] + exp) : exp));
+    }
+
+    // Десятичное округление к ближайшему
+    if (!Math.round10) {
+        Math.round10 = function(value, exp) {
+        return decimalAdjust('round', value, exp);
+        };
+    }
+    // Десятичное округление вниз
+    if (!Math.floor10) {
+        Math.floor10 = function(value, exp) {
+        return decimalAdjust('floor', value, exp);
+        };
+    }
+    // Десятичное округление вверх
+    if (!Math.ceil10) {
+        Math.ceil10 = function(value, exp) {
+        return decimalAdjust('ceil', value, exp);
+        };
+    }
+})();
+
 function Elem(mass, temp){
     this.mass = mass;
     this.temp = temp;
@@ -21,11 +70,11 @@ Elem.prototype.toString = function() {
     } else if (this.mass == Infinity && this.temp == null) {
         return "&infin; kg"
     } else if (this.mass == Infinity && this.temp == null) {
-        return "&infin; kg of " + this.temp + "C";
+        return "&infin; kg of " + Math.round10(this.temp, -2) + "C";
     } else if (this.temp == null){
-        return "" + (this.mass / 1000) + " kg";
+        return "" + Math.round10(this.mass / 1000, -2) + " kg";
     }else{
-        return "" + (this.mass / 1000) + " kg of " + this.temp + "C";
+        return "" + Math.round10(this.mass / 1000, -2) + " kg of " + Math.round10(this.temp, -2) + "C";
     }
 }
 
@@ -51,6 +100,18 @@ Supply.prototype.calculate = function(){
     const result = {};
     result[this.elem] = new Elem(this.mass, this.temp);
     return result;
+}
+
+function Food(food){
+    Item.call(this, {});
+
+    this.food = food;
+};
+Food.prototype = Object.create(Item.prototype);
+Food.prototype.constructor = Supply;
+
+Food.prototype.calculate = function(){
+    return this.food;
 }
 
 function Dup(params) {
@@ -322,12 +383,106 @@ PowerTransformer.prototype.calculate = function(){
     }
 };
 
+/** Food by default calculat as planted */
+
+function Mealwood(params) {
+    Item.call(this, params)
+}
+Mealwood.prototype = Object.create(Item.prototype);
+Mealwood.prototype.constructor = Dup;
+
+Mealwood.prototype.calculate = function(){
+    return {
+        "dirt": new Elem(-10000),
+        "meal_lice": 1/3
+    }
+};
+
+function DuskCap(params) {
+    Item.call(this, params)
+}
+DuskCap.prototype = Object.create(Item.prototype);
+DuskCap.prototype.constructor = Dup;
+
+DuskCap.prototype.calculate = function(){
+    return {
+        "slime": new Elem(-4000),
+        "mushroom": 1/7.5
+    }
+};
+
+function BristleBlossom(params) {
+    Item.call(this, params)
+}
+BristleBlossom.prototype = Object.create(Item.prototype);
+BristleBlossom.prototype.constructor = Dup;
+
+BristleBlossom.prototype.calculate = function(){
+    return {
+        "water": new Elem(-20000),
+        "bristle_berry": 1/6
+    }
+};
+
+function SleetWheat(params) {
+    Item.call(this, params)
+}
+SleetWheat.prototype = Object.create(Item.prototype);
+SleetWheat.prototype.constructor = Dup;
+
+SleetWheat.prototype.calculate = function(){
+    return {
+        "water": new Elem(-20000),
+        "dirt": new Elem(-5000),
+        "sleet_wheat_grain": 18/18
+    }
+};
+
+function PinchaPepper(params) {
+    Item.call(this, params)
+}
+PinchaPepper.prototype = Object.create(Item.prototype);
+PinchaPepper.prototype.constructor = Dup;
+
+PinchaPepper.prototype.calculate = function(){
+    return {
+        "pincha_peppernut": 4/8,
+        "polluted_water": new Elem(-35000),
+        "phosphorite": new Elem(-1000)
+    }
+};
+
+function BalmLily(params) {
+    Item.call(this, params)
+}
+BalmLily.prototype = Object.create(Item.prototype);
+BalmLily.prototype.constructor = Dup;
+
+BalmLily.prototype.calculate = function(){
+    return {
+        "balm_lily_flower": 2/12
+    }
+};
+
+function ThimbleReed(params) {
+    Item.call(this, params)
+}
+ThimbleReed.prototype = Object.create(Item.prototype);
+ThimbleReed.prototype.constructor = Dup;
+
+ThimbleReed.prototype.calculate = function(){
+    return {
+        "reed_fiber": 1/2,
+        "polluted_water": new Elem(-160000)
+    }
+};
+
 /** Base */
 
 function Base() {
-    this.keywords = ["Supply"];
+    this.keywords = ["Supply", "Cook"];
     this.flags = ["lighted"];
-    this.properties = ["temp", "mass"];
+    this.properties = ["temp"];
 
     this.elements = [
         "algae",
@@ -344,6 +499,82 @@ function Base() {
         "filtrate",
         "clay"
     ];
+
+    this.food = {
+        // Raw
+        "meal_lice": {
+            "calories": 600
+        },
+        "mushroom": {
+            "calories": 2400
+        },
+        "bristle_berry": {
+            "calories": 1600
+        },
+        "sleet_wheat_grain": {},
+        "pincha_peppernut": {},
+        "balm_lily_flower": {},
+        "reed_fiber": {},
+        "meat": {
+            "calories": 1600 // per 1000g
+        },
+        // Microbe musher
+        "mush_bar":{
+            "dirt": new Elem(75,000),
+            "water": new Elem(75,000),
+            "calories": 800
+        },
+        "berry_sludge":{
+            "sleet_wheat_grain": -5,
+            "bristle_berry": -1,
+            "calories": 4000
+        },
+        "lice_loaf":{
+            "meal_lice": -2,
+            "water": new Elem(-50,000),
+            "calories": 1700
+        },
+        // Electric Grill
+        "pickled_meal":{
+            "meal_lice": -3,
+            "calories": 1800
+        },
+        "mush_fly":{
+            "mush_bar": -1,
+            "calories": 1050
+        },
+        "fried_mushroom":{
+            "mushroom": -1,
+            "calories": 2800
+        },
+        "gristle_berry":{
+            "bristle_berry": -1,
+            "calories": 2000
+        },
+        "frost_bun":{
+            "sleet_wheat_grain": -3,
+            "calories": 1200
+        },
+        "omelette":{
+            "raw_egg": -1000,
+            "calories": 2800
+        },
+        "stuffed_berry":{
+            "bristle_berry": -2,
+            "pincha_peppernut": -2000,
+            "calories": 4000
+        },
+        "bbq":{
+            "meat": -2,
+            "pincha_peppernut": -1000,
+            "calories": 4000
+        },
+        "pepper_bread":{
+            "sleet_wheat_grain": -10,
+            "pincha_peppernut": -1000,
+            "calories": 4000
+        }
+    };
 
     this.objects = {
         "Dup": Dup,
@@ -366,7 +597,15 @@ function Base() {
         "Battery" : Battery,
         "SmartBattery" : SmartBattery,
         "SmallPowerTransformer" : SmallPowerTransformer,
-        "PowerTransformer" : PowerTransformer
+        "PowerTransformer" : PowerTransformer,
+
+        "Mealwood": Mealwood,
+        "DuskCap": DuskCap,
+        "BristleBlossom": BristleBlossom,
+        "SleetWheat": SleetWheat,
+        "PinchaPepper": PinchaPepper,
+        "BalmLily": BalmLily,
+        "ThimbleReed": ThimbleReed,
     }
 
     this.items = [];
@@ -406,6 +645,14 @@ Base.prototype.addItem = function (item, cnt, params) {
     return this;
 };
 
-Base.prototype.addSupply = function (item, params) {
-    this.items.push(new Supply(item, params["mass"] || Infinity, params["temp"]));
+Base.prototype.addSupply = function (item, amount, params) {
+    this.items.push(new Supply(item, amount || Infinity, params["temp"]));
+    return this;
+}
+
+Base.prototype.addFood = function (item, cnt) {
+    for(i=0;i<cnt;i++){
+        this.items.push(new Food(this.food[item], cnt));
+    }
+    return this;
 }
