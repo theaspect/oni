@@ -1,28 +1,38 @@
+<!DOCTYPE html>
 <html>
     <head>
-        <title></title>
+        <meta charset="utf-8"/>
+
+        <title>Oxygen Not Included Resources Calculator v0.1</title>
 
         <script src="lib/codemirror.js"></script>
         <link rel="stylesheet" href="lib/codemirror.css">
 
         <link rel="stylesheet" href="../addon/hint/show-hint.css">
         <script src="addon/hint/show-hint.js"></script>
+        <script src="addon/mode/simple.js"></script>
 
         <script src="base.js"></script>
         <script src="syntax.js"></script>
     </head>
     <body>
-<!-- Don't tabulate  -->
-<pre>
-Press Ctrl+Space to see available objects
-Syntax:
-    Object – add one Object
-    Number Object – add Number of Objects
-    Number * Number Object – add Rectangle of Objects
-</pre>
-        <div>Results/Cycle:
-            <div style="color: red" id="error"></div>
+    <div>
+        <b>Syntax: </b>
+        press Ctrl+Space to see available objects
+        <div>
+            <div><code>Supply element mass=Number temp=Number</code> - add supply of element with optional mass in gramms and optional temperature</div>
+            <div><code>Object</code> - add one Object</div>
+            <div><code>Number Object</code> - add Number of Objects</div>
+            <div><code>Number * Number Object</code> - add Rectangle of Objects</div>
+            <div><b>Objects: </b><span id="known_objects"></span></div>
+            <div><b>Elements: </b><span id="known_elements"></span></div>
+            <div><b>Flags: </b><span id="known_flags"></span></div>
+            <div><b>Properties: </b><span id="known_properties"></span></div>
+        </div>
+        <br/>
+        <div><b>Results per Cycle (600s): </b>
             <pre id="results"></pre>
+            <div style="color: red" id="error"></div>
         </div>
         <div id="code"></div>
     </body>
@@ -31,7 +41,7 @@ Syntax:
             const cur = editor.getCursor();
             const token = editor.getTokenAt(cur);
             const dict = new Base();
-            const items = [].concat(Object.keys(dict.objects), dict.flags, dict.properties);
+            const items = [].concat(dict.keywords, Object.keys(dict.objects), dict.flags, dict.properties, dict.elements);
             return {
                 list: items.filter((v) => v.startsWith(token.string.trim())),
                 from: CodeMirror.Pos(cur.line, token.start),
@@ -43,10 +53,28 @@ Syntax:
         }
         CodeMirror.registerHelper("hint", "items", showItems);
 
+        CodeMirror.defineSimpleMode("simplemode", {
+            start: [
+                {regex: /\w+/, token: "string"},
+                {regex: /-?\d+\.?\d*/, token: "number"},
+                {regex: /Simple/, token: "keyword"},
+            ],
+            comment: [],
+            // The meta property contains global information about the mode. It
+            // can contain properties like lineComment, which are supported by
+            // all modes, and also directives like dontIndentStates, which are
+            // specific to simple modes.
+            meta: {
+                dontIndentStates: ["comment"],
+                lineComment: "//"
+            }
+        });
+
         const cm = CodeMirror(document.getElementById("code"), {
             lineNumbers: true,
             extraKeys: {"Ctrl-Space": "autocomplete"},
-            value: "5 Dup\n3*4 AlgaeTerrarium\nAlgaeTerrarium lighted\nManualGenerator\nNaturalGasGenerator temp=30"
+            value: "Supply algae\nSupply natural_gas mass=54000 temp=30\n5 Dup\n3*4 AlgaeTerrarium\nAlgaeTerrarium lighted\nManualGenerator\nNaturalGasGenerator temp=30",
+            mode: "simplemode"
         });
         cm.on("change", onCalculate);
 
@@ -69,7 +97,6 @@ Syntax:
                 document.getElementById("results").innerHTML = html;
                 document.getElementById("error").innerText = "";
             }catch(e){
-                document.getElementById("results").innerText = "";
                 if(e instanceof parser.SyntaxError){
                     document.getElementById("error").innerText = `Line ${e.location.start.line} ${e.message}`;
                 }else{
@@ -81,5 +108,9 @@ Syntax:
 
         // Calculate current value
         onCalculate();
+        document.getElementById("known_objects").innerText = Object.keys(new Base().objects).join(" ");
+        document.getElementById("known_elements").innerText = new Base().elements.join(" ");
+        document.getElementById("known_flags").innerText = new Base().flags.join(" ");
+        document.getElementById("known_properties").innerText = new Base().properties.join(" ");
     </script>
 </html>

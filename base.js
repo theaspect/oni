@@ -1,8 +1,8 @@
 const CYCLE = 600;
 
 function Elem(mass, temp){
-    this.mass = mass
-    this.temp = temp
+    this.mass = mass;
+    this.temp = temp;
 };
 
 Elem.prototype.add = function(add) {
@@ -17,11 +17,15 @@ Elem.prototype.add = function(add) {
 }
 Elem.prototype.toString = function() {
     if (this.mass == 0 ){
-        return "0kg";
+        return "0 kg";
+    } else if (this.mass == Infinity && this.temp == null) {
+        return "&infin; kg"
+    } else if (this.mass == Infinity && this.temp == null) {
+        return "&infin; kg of " + this.temp + "C";
     } else if (this.temp == null){
-        return "" + (this.mass / 1000) + "kg";
+        return "" + (this.mass / 1000) + " kg";
     }else{
-        return "" + (this.mass / 1000) + "kg of " + this.temp + "C";
+        return "" + (this.mass / 1000) + " kg of " + this.temp + "C";
     }
 }
 
@@ -31,6 +35,22 @@ function Item(params) {
 }
 Item.prototype.calculate = function () {
     return {};
+}
+
+function Supply(elem, mass, temp){
+    Item.call(this, {});
+
+    this.elem = elem;
+    this.mass = mass;
+    this.temp = temp;
+};
+Supply.prototype = Object.create(Item.prototype);
+Supply.prototype.constructor = Supply;
+
+Supply.prototype.calculate = function(){
+    const result = {};
+    result[this.elem] = new Elem(this.mass, this.temp);
+    return result;
 }
 
 function Dup(params) {
@@ -72,7 +92,7 @@ AlgaeDeoxydizer.prototype.calculate = function(){
         power: -120,
         heat: 1.5 * CYCLE,
         oxygen: new Elem(500*CYCLE, 30),
-        aglae: new Elem(-550*CYCLE)
+        algae: new Elem(-550*CYCLE)
 
     }
 };
@@ -88,7 +108,7 @@ AlgaeTerrarium.prototype.calculate = function(){
         polluted_water: new Elem(290.33 * CYCLE, 30),
         oxygen: new Elem((this.params["lighted"] ? 44 : 40)*CYCLE, 30),
         carbon_dioxide: new Elem(-0.33333*CYCLE),
-        aglae: new Elem(-30*CYCLE)
+        algae: new Elem(-30*CYCLE)
     }
 };
 
@@ -305,8 +325,25 @@ PowerTransformer.prototype.calculate = function(){
 /** Base */
 
 function Base() {
+    this.keywords = ["Supply"];
     this.flags = ["lighted"];
-    this.properties = ["temp"];
+    this.properties = ["temp", "mass"];
+
+    this.elements = [
+        "algae",
+        "calories",
+        "carbon_dioxide",
+        "coal",
+        "hydrogen",
+        "natural_gas",
+        "oxygen",
+        "petroleum",
+        "polluted_oxygen",
+        "polluted_water",
+        "water",
+        "filtrate",
+        "clay"
+    ];
 
     this.objects = {
         "Dup": Dup,
@@ -333,6 +370,7 @@ function Base() {
     }
 
     this.items = [];
+    this.supplies = [];
 };
 
 Base.prototype.merge = function (a, b) {
@@ -351,7 +389,8 @@ Base.prototype.merge = function (a, b) {
 };
 
 Base.prototype.calculate = function() {
-    return this.items.reduce (this.merge, {});
+    let result = this.items.reduce (this.merge, {});
+    return result;
 };
 
 Base.prototype.addItem = function (item, cnt, params) {
@@ -366,3 +405,7 @@ Base.prototype.addItem = function (item, cnt, params) {
     }
     return this;
 };
+
+Base.prototype.addSupply = function (item, params) {
+    this.items.push(new Supply(item, params["mass"] || Infinity, params["temp"]));
+}
