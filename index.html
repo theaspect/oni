@@ -13,7 +13,7 @@
 
         <meta charset="utf-8"/>
 
-        <title>Oxygen Not Included Resources Calculator v0.1</title>
+        <title>Oxygen Not Included Resources Calculator v0.2</title>
 
         <script src="lib/codemirror.js"></script>
         <link rel="stylesheet" href="lib/codemirror.css">
@@ -32,7 +32,7 @@
         </style>
     </head>
     <body>
-    <h4>Oxygen Not Included Resources Calculator v0.1 [<a href="https://steamcommunity.com/app/457140/discussions/0/1741100729967972815/">Discussion</a>]</h4>
+    <h4>Oxygen Not Included Resources Calculator v0.2 [<a href="https://steamcommunity.com/app/457140/discussions/0/1741100729967972815/">Discussion</a>]</h4>
     <div>
         <b>Syntax: </b>
         press Ctrl+Space to see available objects
@@ -45,6 +45,11 @@
             <div><b>Food: </b><span id="known_food"></span></div>
             <div><b>Flags: </b><span id="known_flags"></span></div>
             <div><b>Properties: </b><span id="known_properties"></span></div>
+            <div>
+                <b>Examples:</b>
+                <a href="javascript:void(0);" onclick="exampleBase()">Food Supply</a>
+                <a href="javascript:void(0);" onclick="exampleNaturalGasGeyser()">Natural Gas Geyser</a>
+            </div>
         </div>
         <br/>
         <div>
@@ -63,7 +68,7 @@
             const cur = editor.getCursor();
             const token = editor.getTokenAt(cur);
             const dict = new Base();
-            const items = [].concat(dict.keywords, Object.keys(dict.objects), dict.flags, dict.properties, dict.elements, Object.keys(dict.food));
+            const items = [].concat(dict.keywords, Object.keys(dict.objects), dict.flags, dict.properties, Object.keys(dict.elements), Object.keys(dict.food));
             return {
                 list: items.filter((v) => v.startsWith(token.string.trim())),
                 from: CodeMirror.Pos(cur.line, token.start),
@@ -96,7 +101,64 @@
             lineNumbers: true,
             viewportMargin: Infinity,
             extraKeys: {"Ctrl-Space": "autocomplete"},
-            value: [
+            value: "// Click on Examples",
+            mode: "simplemode"
+        });
+        cm.on("change", onCalculate);
+
+        function onCalculate(){
+            try{
+                const result = parser.parse(cm.getValue());
+                const html = Object.keys(result).map((key) => {
+                    const el = result[key];
+                    if(el instanceof Elem){
+                        const amt = el.toString();
+
+                        if(parseFloat(amt) > 0){
+                            return `<div style='color: green'><b>${key}:</b> ${amt}</div>`
+                        }else if(parseFloat(amt) < 0){
+                            return `<div style='color: red'><b>${key}:</b> ${amt}</div>`
+                        }else{
+                            return `<div style='color: black'><b>${key}:</b> ${amt}</div>`
+                        }
+                    }else if(typeof(el) === "number"){
+                        const amt = Math.round10(el, -2);
+
+                        if(parseFloat(amt) > 0){
+                            return `<div style='color: green'><b>${key}:</b> ${amt}</div>`
+                        }else if(parseFloat(amt) < 0){
+                            return `<div style='color: red'><b>${key}:</b> ${amt}</div>`
+                        }else{
+                            return `<div style='color: black'><b>${key}:</b> ${amt}</div>`
+                        }
+                    }else{
+                        return `<div><b>${key}:</b> ${el}</div>`;
+                    }
+                }).join("")
+
+                document.getElementById("results").innerHTML = html;
+                document.getElementById("error").innerText = "";
+            }catch(e){
+                if(e instanceof parser.SyntaxError){
+                    document.getElementById("error").innerText = `Line ${e.location.start.line} ${e.message}`;
+                }else{
+                    
+                    document.getElementById("error").innerText = e.message;
+                }
+            }
+        }
+
+        // Calculate current value
+        onCalculate();
+        const dict = new Base();
+        document.getElementById("known_objects").innerText = Object.keys(dict.objects).join(" ");
+        document.getElementById("known_elements").innerText = Object.keys(dict.elements).join(" ");
+        document.getElementById("known_food").innerText = Object.keys(dict.food).join(" ");
+        document.getElementById("known_flags").innerText = dict.flags.join(" ");
+        document.getElementById("known_properties").innerText = dict.properties.join(" ");
+
+        function exampleBase() {
+            cm.setValue([
                 "// Supply any available element",
                 "Supply algae",
                 "// You can specify mass and/or temperature",
@@ -117,46 +179,22 @@
                 "18 BristleBlossom",
                 "// And cook it",
                 "Cook 3 gristle_berry",
-            ].join("\n"),
-            mode: "simplemode"
-        });
-        cm.on("change", onCalculate);
-
-        function onCalculate(){
-            try{
-                const result = parser.parse(cm.getValue());
-                const html = Object.keys(result).map((key) => {
-                    const el = result[key];
-                    const amt = (el instanceof Elem) ? el.toString() : Math.round10(el, -2);
-
-                    if(parseFloat(amt) > 0){
-                        return `<div style='color: green'><b>${key}:</b> ${amt}</div>`
-                    }else if(parseFloat(amt) < 0){
-                        return `<div style='color: red'><b>${key}:</b> ${amt}</div>`
-                    }else{
-                        return `<div style='color: black'><b>${key}:</b> ${amt}</div>`
-                    }
-                }).join("")
-
-                document.getElementById("results").innerHTML = html;
-                document.getElementById("error").innerText = "";
-            }catch(e){
-                if(e instanceof parser.SyntaxError){
-                    document.getElementById("error").innerText = `Line ${e.location.start.line} ${e.message}`;
-                }else{
-                    
-                    document.getElementById("error").innerText = e.message;
-                }
-            }
+            ].join("\n"));
         }
 
-        // Calculate current value
-        onCalculate();
-        const dict = new Base();
-        document.getElementById("known_objects").innerText = Object.keys(dict.objects).join(" ");
-        document.getElementById("known_elements").innerText = dict.elements.join(" ");
-        document.getElementById("known_food").innerText = Object.keys(dict.food).join(" ");
-        document.getElementById("known_flags").innerText = dict.flags.join(" ");
-        document.getElementById("known_properties").innerText = dict.properties.join(" ");
+        function exampleNaturalGasGeyser() {
+            cm.setValue([
+                "// Natural geyser erupts 1000g/s of Gas",
+                "NaturalGasGeyser yield_gramm=1000",
+                "// Feed this gas to generator located in 30C room",
+                "NaturalGasGenerator temp=30",
+                "// Remove carbon",
+                "CarbonSkimmer",
+                "// And clean water",
+                "WaterSieve",
+                "// Send all excessive heat to 1000kg of 20C water",
+                "HeatSink 1000000 water temp=20"
+            ].join("\n"));
+        }
     </script>
 </html>
