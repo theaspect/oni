@@ -18,12 +18,18 @@ Start = NL* Expression (NL Expression)* NL?
 
 Expression = 
     Supply
+    / Energy
     / HeatSink
     / Cook
     / Object
     / Comment
 
 Comment "Comment" = "//" [^\r\n]* _
+
+Energy "Energy" = "Energy"i _ energy: Float
+    {
+        return base.addEnergy(energy);
+    }
 
 Cook "Cook" = "Cook"i _ count: Number? _ food: FoodName
     {
@@ -56,7 +62,7 @@ Supply "Supply" = "Supply"i _ amount: Number? _ element: Element _ params: (_ Pr
         return base.addSupply(element, amount, Object.assign({}, ...params.map((e) => e[1])));
     }
 
-HeatSink "HeatSink" = "HeatSink"i _ amount: Number _ element: Element _ params: (_ Property / Flag)* _
+HeatSink "HeatSink" = "HeatSink"i _ amount: Number? _ element: Element _ params: (_ Property / Flag)* _
     {
         return base.addHeatSink(element, amount, Object.assign({}, ...params.map((e) => e[1])));
     }

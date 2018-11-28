@@ -13,7 +13,7 @@
 
         <meta charset="utf-8"/>
 
-        <title>Oxygen Not Included Resources Calculator v0.2</title>
+        <title>Oxygen Not Included Resources Calculator v0.3</title>
 
         <script src="lib/codemirror.js"></script>
         <link rel="stylesheet" href="lib/codemirror.css">
@@ -32,7 +32,7 @@
         </style>
     </head>
     <body>
-    <h4>Oxygen Not Included Resources Calculator v0.2 [<a href="https://steamcommunity.com/app/457140/discussions/0/1741100729967972815/">Discussion</a>]</h4>
+    <h4>Oxygen Not Included Resources Calculator v0.3 [<a href="https://steamcommunity.com/app/457140/discussions/0/1741100729967972815/">Discussion</a>]</h4>
     <div>
         <b>Syntax: </b>
         press Ctrl+Space to see available objects
@@ -49,18 +49,24 @@
                 <b>Examples:</b>
                 <a href="javascript:void(0);" onclick="exampleBase()">Food Supply</a>
                 <a href="javascript:void(0);" onclick="exampleNaturalGasGeyser()">Natural Gas Geyser</a>
+                <a href="javascript:void(0);" onclick="energyRemoval()">Energy Removal</a>
+                <a href="javascript:void(0);" onclick="coolDownVolcano()">Cool Down Volcano</a>
             </div>
         </div>
         <br/>
         <div>
-            <div style="width:70%; float: left">
-                <div id="code"></div>
-            </div>
-            <div style="width:30%; float: left">
-                    <b>Results per Cycle (600s): </b>
-                    <pre id="results"></pre>
-                    <div style="color: red" id="error"></div>
-            </div>
+            <table>
+                <tr>
+                    <td style="vertical-align: top">
+                        <b>Results per Cycle (600s): </b>
+                        <div id="results"></div>
+                        <div style="color: red" id="error"></div>
+                    </td>
+                    <td style="vertical-align: top">
+                        <div id="code"></div>
+                    </td>
+                </tr>
+            </table>
         </div>
     </body>
     <script>
@@ -194,6 +200,34 @@
                 "WaterSieve",
                 "// Send all excessive heat to 1000kg of 20C water",
                 "HeatSink 1000000 water temp=20"
+            ].join("\n"));
+        }
+
+        function energyRemoval(){
+            cm.setValue([
+                "// For every centigree of water",
+                "Supply 600000 water temp=1",
+                "// Supplied to electrolyzer it will remove 2500kDtu of heat",
+                "Electrolyzer",
+                "HydrogenGenerator",
+                "// If we sink this energy to water, it will cool down every cycle by 0.4C per centigree above 0",
+                "HeatSink 1000000 water",
+                "// Try to change supply water to 90C and 1000kg of water will cool down by 54C"
+            ].join("\n"));
+        }
+
+        function coolDownVolcano(){
+            cm.setValue([
+                "GoldVolcano yield_gramm=230",
+                "Energy -46200",
+                "// Sink negative energy to erupted gold",
+                "HeatSink gold_liquid",
+                "",
+                "// Commend above and uncomment below",
+                "// Same energy required to near boil 160kg of water",
+                "// Energy 46200",
+                "// Supply 160000 water temp=30",
+                "// HeatSink water"
             ].join("\n"));
         }
     </script>
