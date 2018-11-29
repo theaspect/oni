@@ -238,6 +238,20 @@ Electrolyzer.prototype.calculate = function(){
 
 /** Refinement */
 
+function Compost(params) {
+    Item.call(this, params)
+}
+Compost.prototype = Object.create(Item.prototype);
+Compost.prototype.constructor = Compost;
+
+Compost.prototype.calculate = function(){
+    return {
+        heat: 1.125 * CYCLE,
+        polluted_dirt: new Elem(-100*CYCLE),
+        dirt: new Elem(100*CYCLE, 75)
+    }
+};
+
 function WaterSieve(params) {
     Item.call(this, params)
 }
@@ -252,6 +266,74 @@ WaterSieve.prototype.calculate = function(){
         polluted_water: new Elem(-5000 * CYCLE),
         water: new Elem(5000 * CYCLE, 40),
         polluted_dirt: new Elem(200 * CYCLE, 40)
+    }
+};
+
+function AlgaeDistillizer(params) {
+    Item.call(this, params)
+}
+AlgaeDistillizer.prototype = Object.create(Item.prototype);
+AlgaeDistillizer.prototype.constructor = AlgaeDistillizer;
+
+AlgaeDistillizer.prototype.calculate = function(){
+    return {
+        power: -120,
+        heat: 1.5 * CYCLE,
+        slime: new Elem(-600 * CYCLE, 30),
+        polluted_water: new Elem(400 * CYCLE, 30),
+        algae: new Elem(200 * CYCLE, 30)
+    }
+};
+
+function FertilizerSynthesizer(params) {
+    Item.call(this, params)
+}
+FertilizerSynthesizer.prototype = Object.create(Item.prototype);
+FertilizerSynthesizer.prototype.constructor = FertilizerSynthesizer;
+
+FertilizerSynthesizer.prototype.calculate = function(){
+    return {
+        power: -120,
+        heat: 3 * CYCLE,
+        polluted_water: new Elem(-39 * CYCLE),
+        dirt: new Elem(-65 * CYCLE),
+        phosphorite: new Elem(-26 * CYCLE),
+        natural_gas: new Elem(10 * CYCLE, 50),
+        fertilizer: new Elem(120 * CYCLE, 29.85)
+    }
+};
+
+function OilRefinery(params) {
+    Item.call(this, params)
+}
+OilRefinery.prototype = Object.create(Item.prototype);
+OilRefinery.prototype.constructor = OilRefinery;
+
+OilRefinery.prototype.calculate = function(){
+    return {
+        power: -480,
+        heat: 10 * CYCLE,
+        crude_oil: new Elem(-10000 * CYCLE),
+        petroleum: new Elem(5000 * CYCLE, 75),
+        natural_gas: new Elem(90 * CYCLE, 75) //???
+    }
+};
+
+function PolymerPress(params) {
+    Item.call(this, params)
+}
+PolymerPress.prototype = Object.create(Item.prototype);
+PolymerPress.prototype.constructor = PolymerPress;
+
+PolymerPress.prototype.calculate = function(){
+    return {
+        power: -240,
+        heat: 32.5 * CYCLE,
+
+        petroleum: new Elem(-833.33 * CYCLE),
+        plastic: new Elem(500 * CYCLE, 75),
+        steam: new Elem(8.33 * CYCLE, 200),
+        carbon_dioxide: new Elem(8.33 * CYCLE, 150)
     }
 };
 
@@ -807,6 +889,7 @@ Base.prototype.elements = {
     "coal": 0.710,
     "copper_liquid": 0.386,
     "crude_oil": 1.69,
+    "fertilizer": 0.83,
     "filtrate": 0,
     "gold_liquid": 0.129,
     "hydrogen": 2.4,
@@ -815,6 +898,7 @@ Base.prototype.elements = {
     "natural_gas": 2.191,
     "oxygen": 1.005,
     "petroleum": 1.76,
+    "plastic": 1.92,
     "polluted_oxygen": 1.01,
     "polluted_water": 4.179,
     "steam": 4.179,
@@ -906,7 +990,12 @@ Base.prototype.objects = {
     "CarbonSkimmer": CarbonSkimmer,
     "Electrolyzer": Electrolyzer,
 
+    "Compost": Compost,
+    "FertilizerSynthesizer": FertilizerSynthesizer,
     "WaterSieve": WaterSieve,
+    "AlgaeDistillizer": AlgaeDistillizer,
+    "OilRefinery": OilRefinery,
+    "PolymerPress": PolymerPress,
 
     "ManualGenerator" : ManualGenerator,
     "CoalGenerator" : CoalGenerator,
