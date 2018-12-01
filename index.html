@@ -60,6 +60,7 @@
                 <a href="javascript:void(0);" onclick="oilRefineryCycle()">Oil Refinery Cycle</a>
                 <a href="javascript:void(0);" onclick="aetn()">AETN</a>
                 <a href="javascript:void(0);" onclick="wheezewort()">Wheezewort</a>
+                <a href="javascript:void(0);" onclick="steamTurbine()">Steam Turbine</a>
             </div>
         </div>
         <br/>
@@ -277,6 +278,21 @@
                 "Wheezewort pressure=1500 element=hydrogen",
                 "// Cool one cell of water",
                 "HeatSink 1000000 water"
+            ].join("\n"));
+        }
+
+        function steamTurbine(){
+            cm.setValue([
+                "// You have 10 cells with 3kg of steam",
+                "Supply 30000 steam temp=500",
+                "// And only 4 out of 5 blocks available",
+                "SteamTurbine blocks=4",
+                "",
+                "// I can't calculate energy balance for steam turbine now",
+                "// Manual calculation gives 752kDu will be removed",
+                "Energy -752",
+                "// Heat capacity of water is same for steam",
+                "HeatSink 30000 steam temp=500"
             ].join("\n"));
         }
     </script>

@@ -49,14 +49,25 @@ const CYCLE = 600;
     }
 })();
 
-function Elem(mass, temp){
+function Elem(mass, temp, deltaMass){
     this.mass = mass;
     this.temp = temp;
+    this.deltaMass = deltaMass;
 };
 
 Elem.prototype.add = function(add) {
-    // In case we don't know temperature of one element we simply ignore it
-    if(this.temp == null || add.temp == null) {
+    if(add.deltaMass != null){
+        // Special case for steam turbine where mass does not change
+        if(this.mass != null && this.temp != null){
+            return new Elem(
+                this.mass, 
+                ((this.mass - add.deltaMass) * this.temp + add.deltaMass * add.temp) / this.mass
+            )
+        } else {
+            return new Elem(0, 425)
+        }
+    } else if(this.temp == null || add.temp == null) {
+        // In case we don't know temperature of one element we simply ignore it
         return new Elem(this.mass+add.mass, this.temp || add.temp)
     } else {
         return new Elem(this.mass+add.mass, 
@@ -83,7 +94,7 @@ Elem.prototype.toString = function() {
 function Item(params) {
     this.params = params || {}
 }
-Item.prototype.calculate = function () {
+Item.prototype.calculate = function (current) {
     return {};
 }
 
@@ -95,7 +106,7 @@ function Energy(kdtu){
 Energy.prototype = Object.create(Item.prototype);
 Energy.prototype.constructor = Energy;
 
-Energy.prototype.calculate = function(){
+Energy.prototype.calculate = function(current){
     const result = {
         energy: this.kdtu * 1000
     };
@@ -126,7 +137,7 @@ function Food(food){
 Food.prototype = Object.create(Item.prototype);
 Food.prototype.constructor = Food;
 
-Food.prototype.calculate = function(){
+Food.prototype.calculate = function(current){
     return this.food;
 }
 
@@ -136,7 +147,7 @@ function Dup(params) {
 Dup.prototype = Object.create(Item.prototype);
 Dup.prototype.constructor = Dup;
 
-Dup.prototype.calculate = function(){
+Dup.prototype.calculate = function(current){
     return {
         calories: -1000,
         oxygen: new Elem(-100 * CYCLE),
@@ -151,7 +162,7 @@ function TMP(params) {
 TMP.prototype = Object.create(Item.prototype);
 TMP.prototype.constructor = TMP;
 
-TMP.prototype.calculate = function(){
+TMP.prototype.calculate = function(current){
     return {
     }
 };
@@ -164,7 +175,7 @@ function AlgaeDeoxydizer(params) {
 AlgaeDeoxydizer.prototype = Object.create(Item.prototype);
 AlgaeDeoxydizer.prototype.constructor = AlgaeDeoxydizer;
 
-AlgaeDeoxydizer.prototype.calculate = function(){
+AlgaeDeoxydizer.prototype.calculate = function(current){
     return {
         power: -120,
         heat: 1.5 * CYCLE,
@@ -180,7 +191,7 @@ function AlgaeTerrarium(params) {
 AlgaeTerrarium.prototype = Object.create(Item.prototype);
 AlgaeTerrarium.prototype.constructor = AlgaeTerrarium;
 
-AlgaeTerrarium.prototype.calculate = function(){
+AlgaeTerrarium.prototype.calculate = function(current){
     return {
         polluted_water: new Elem(290.33 * CYCLE, 30),
         oxygen: new Elem((this.params["lighted"] ? 44 : 40)*CYCLE, 30),
@@ -195,7 +206,7 @@ function Deodorizer(params) {
 Deodorizer.prototype = Object.create(Item.prototype);
 Deodorizer.prototype.constructor = Deodorizer;
 
-Deodorizer.prototype.calculate = function(){
+Deodorizer.prototype.calculate = function(current){
     return {
         oxygen: new Elem(90 * CYCLE, 46.85),
         polluted_oxygen: new Elem(-100 * CYCLE),
@@ -210,7 +221,7 @@ function CarbonSkimmer(params) {
 CarbonSkimmer.prototype = Object.create(Item.prototype);
 CarbonSkimmer.prototype.constructor = CarbonSkimmer;
 
-CarbonSkimmer.prototype.calculate = function(){
+CarbonSkimmer.prototype.calculate = function(current){
     return {
         power: -120,
         heat: 1 * CYCLE,
@@ -226,7 +237,7 @@ function Electrolyzer(params) {
 Electrolyzer.prototype = Object.create(Item.prototype);
 Electrolyzer.prototype.constructor = Electrolyzer;
 
-Electrolyzer.prototype.calculate = function(){
+Electrolyzer.prototype.calculate = function(current){
     return {
         power: -120,
         heat: 1.25 * CYCLE,
@@ -244,7 +255,7 @@ function Compost(params) {
 Compost.prototype = Object.create(Item.prototype);
 Compost.prototype.constructor = Compost;
 
-Compost.prototype.calculate = function(){
+Compost.prototype.calculate = function(current){
     return {
         heat: 1.125 * CYCLE,
         polluted_dirt: new Elem(-100*CYCLE),
@@ -258,7 +269,7 @@ function WaterSieve(params) {
 WaterSieve.prototype = Object.create(Item.prototype);
 WaterSieve.prototype.constructor = WaterSieve;
 
-WaterSieve.prototype.calculate = function(){
+WaterSieve.prototype.calculate = function(current){
     return {
         power: -120,
         heat: 4 * CYCLE,
@@ -275,7 +286,7 @@ function AlgaeDistillizer(params) {
 AlgaeDistillizer.prototype = Object.create(Item.prototype);
 AlgaeDistillizer.prototype.constructor = AlgaeDistillizer;
 
-AlgaeDistillizer.prototype.calculate = function(){
+AlgaeDistillizer.prototype.calculate = function(current){
     return {
         power: -120,
         heat: 1.5 * CYCLE,
@@ -291,7 +302,7 @@ function FertilizerSynthesizer(params) {
 FertilizerSynthesizer.prototype = Object.create(Item.prototype);
 FertilizerSynthesizer.prototype.constructor = FertilizerSynthesizer;
 
-FertilizerSynthesizer.prototype.calculate = function(){
+FertilizerSynthesizer.prototype.calculate = function(current){
     return {
         power: -120,
         heat: 3 * CYCLE,
@@ -309,7 +320,7 @@ function OilRefinery(params) {
 OilRefinery.prototype = Object.create(Item.prototype);
 OilRefinery.prototype.constructor = OilRefinery;
 
-OilRefinery.prototype.calculate = function(){
+OilRefinery.prototype.calculate = function(current){
     return {
         power: -480,
         heat: 10 * CYCLE,
@@ -325,7 +336,7 @@ function PolymerPress(params) {
 PolymerPress.prototype = Object.create(Item.prototype);
 PolymerPress.prototype.constructor = PolymerPress;
 
-PolymerPress.prototype.calculate = function(){
+PolymerPress.prototype.calculate = function(current){
     return {
         power: -240,
         heat: 32.5 * CYCLE,
@@ -345,7 +356,7 @@ function ManualGenerator(params) {
 ManualGenerator.prototype = Object.create(Item.prototype);
 ManualGenerator.prototype.constructor = ManualGenerator;
 
-ManualGenerator.prototype.calculate = function(){
+ManualGenerator.prototype.calculate = function(current){
     return {
         power: 400,
         heat: 1 * CYCLE
@@ -358,7 +369,7 @@ function CoalGenerator(params) {
 CoalGenerator.prototype = Object.create(Item.prototype);
 CoalGenerator.prototype.constructor = CoalGenerator;
 
-CoalGenerator.prototype.calculate = function(){
+CoalGenerator.prototype.calculate = function(current){
     return {
         power : 600,
         heat: 9 * CYCLE,
@@ -373,7 +384,7 @@ function HydrogenGenerator(params) {
 HydrogenGenerator.prototype = Object.create(Item.prototype);
 HydrogenGenerator.prototype.constructor = HydrogenGenerator;
 
-HydrogenGenerator.prototype.calculate = function(){
+HydrogenGenerator.prototype.calculate = function(current){
     return {
         power: 800,
         heat: 4 * CYCLE,
@@ -387,7 +398,7 @@ function NaturalGasGenerator(params) {
 NaturalGasGenerator.prototype = Object.create(Item.prototype);
 NaturalGasGenerator.prototype.constructor = NaturalGasGenerator;
 
-NaturalGasGenerator.prototype.calculate = function(){
+NaturalGasGenerator.prototype.calculate = function(current){
     return {
         power: 800,
         heat: 10 * CYCLE,
@@ -403,7 +414,7 @@ function PetroleumGenerator(params) {
 PetroleumGenerator.prototype = Object.create(Item.prototype);
 PetroleumGenerator.prototype.constructor = PetroleumGenerator;
 
-PetroleumGenerator.prototype.calculate = function(){
+PetroleumGenerator.prototype.calculate = function(current){
     return {
         power: 2000,
         heat: 20 * CYCLE,
@@ -415,14 +426,17 @@ PetroleumGenerator.prototype.calculate = function(){
 
 function SteamTurbine(params) {
     Item.call(this, params)
+    this.blocks = params["blocks"];
 }
 SteamTurbine.prototype = Object.create(Item.prototype);
 SteamTurbine.prototype.constructor = SteamTurbine;
 
-SteamTurbine.prototype.calculate = function(){
+SteamTurbine.prototype.calculate = function(current){
+    // Bu default use 5 blocks
+    const rate = 2 * (this.blocks != null && this.blocks >= 0 && this.blocks <= 5) ? this.blocks : 5;
     return {
         power: 2000,
-        // steam: 10000 delta temp -151.85C
+        steam: new Elem(null, 425, rate * CYCLE)
     }
 };
 
@@ -432,7 +446,7 @@ function SolarPower(params) {
 SolarPower.prototype = Object.create(Item.prototype);
 SolarPower.prototype.constructor = SolarPower;
 
-SolarPower.prototype.calculate = function(){
+SolarPower.prototype.calculate = function(current){
     return {
         power: 380
     }
@@ -446,7 +460,7 @@ function TinyBattery(params) {
 TinyBattery.prototype = Object.create(Item.prototype);
 TinyBattery.prototype.constructor = TinyBattery;
 
-TinyBattery.prototype.calculate = function(){
+TinyBattery.prototype.calculate = function(current){
     return {
         heat: 1.25 * CYCLE
     }
@@ -458,7 +472,7 @@ function Battery(params) {
 Battery.prototype = Object.create(Item.prototype);
 Battery.prototype.constructor = Battery;
 
-Battery.prototype.calculate = function(){
+Battery.prototype.calculate = function(current){
     return {
         heat: 1.25 * CYCLE
     }
@@ -470,7 +484,7 @@ function SmartBattery(params) {
 SmartBattery.prototype = Object.create(Item.prototype);
 SmartBattery.prototype.constructor = SmartBattery;
 
-SmartBattery.prototype.calculate = function(){
+SmartBattery.prototype.calculate = function(current){
     return {
         heat: 0.5 * CYCLE
     }
@@ -482,7 +496,7 @@ function SmallPowerTransformer(params) {
 SmallPowerTransformer.prototype = Object.create(Item.prototype);
 SmallPowerTransformer.prototype.constructor = SmallPowerTransformer;
 
-SmallPowerTransformer.prototype.calculate = function(){
+SmallPowerTransformer.prototype.calculate = function(current){
     return {
         heat: 1 * CYCLE
     }
@@ -494,7 +508,7 @@ function PowerTransformer(params) {
 PowerTransformer.prototype = Object.create(Item.prototype);
 PowerTransformer.prototype.constructor = PowerTransformer;
 
-PowerTransformer.prototype.calculate = function(){
+PowerTransformer.prototype.calculate = function(current){
     return {
         heat: 1 * CYCLE
     }
@@ -508,7 +522,7 @@ function Mealwood(params) {
 Mealwood.prototype = Object.create(Item.prototype);
 Mealwood.prototype.constructor = Mealwood;
 
-Mealwood.prototype.calculate = function(){
+Mealwood.prototype.calculate = function(current){
     return {
         "dirt": new Elem(-10000),
         "meal_lice": 1/3
@@ -521,7 +535,7 @@ function DuskCap(params) {
 DuskCap.prototype = Object.create(Item.prototype);
 DuskCap.prototype.constructor = DuskCap;
 
-DuskCap.prototype.calculate = function(){
+DuskCap.prototype.calculate = function(current){
     return {
         "slime": new Elem(-4000),
         "mushroom": 1/7.5
@@ -534,7 +548,7 @@ function BristleBlossom(params) {
 BristleBlossom.prototype = Object.create(Item.prototype);
 BristleBlossom.prototype.constructor = BristleBlossom;
 
-BristleBlossom.prototype.calculate = function(){
+BristleBlossom.prototype.calculate = function(current){
     return {
         "water": new Elem(-20000),
         "bristle_berry": 1/6
@@ -547,7 +561,7 @@ function SleetWheat(params) {
 SleetWheat.prototype = Object.create(Item.prototype);
 SleetWheat.prototype.constructor = SleetWheat;
 
-SleetWheat.prototype.calculate = function(){
+SleetWheat.prototype.calculate = function(current){
     return {
         "water": new Elem(-20000),
         "dirt": new Elem(-5000),
@@ -561,7 +575,7 @@ function PinchaPepper(params) {
 PinchaPepper.prototype = Object.create(Item.prototype);
 PinchaPepper.prototype.constructor = PinchaPepper;
 
-PinchaPepper.prototype.calculate = function(){
+PinchaPepper.prototype.calculate = function(current){
     return {
         "pincha_peppernut": 4/8,
         "polluted_water": new Elem(-35000),
@@ -575,7 +589,7 @@ function BalmLily(params) {
 BalmLily.prototype = Object.create(Item.prototype);
 BalmLily.prototype.constructor = BalmLily;
 
-BalmLily.prototype.calculate = function(){
+BalmLily.prototype.calculate = function(current){
     return {
         "balm_lily_flower": 2/12
     }
@@ -587,7 +601,7 @@ function ThimbleReed(params) {
 ThimbleReed.prototype = Object.create(Item.prototype);
 ThimbleReed.prototype.constructor = ThimbleReed;
 
-ThimbleReed.prototype.calculate = function(){
+ThimbleReed.prototype.calculate = function(current){
     return {
         "reed_fiber": 1/2,
         "polluted_water": new Elem(-160000)
@@ -639,7 +653,7 @@ function CoolSteamVent(params) {
 CoolSteamVent.prototype = Object.create(Geyser.prototype);
 CoolSteamVent.prototype.constructor = CoolSteamVent;
 
-CoolSteamVent.prototype.calculate = function() {
+CoolSteamVent.prototype.calculate = function(current) {
     return {
         "steam": new Elem(this.get_yield(), 110)
     }
@@ -652,7 +666,7 @@ function SteamVent(params) {
 SteamVent.prototype = Object.create(Geyser.prototype);
 SteamVent.prototype.constructor = SteamVent;
 
-SteamVent.prototype.calculate = function() {
+SteamVent.prototype.calculate = function(current) {
     return {
         "steam": new Elem(this.get_yield(), 500)
     }
@@ -665,7 +679,7 @@ function WaterGeyser(params) {
 WaterGeyser.prototype = Object.create(Geyser.prototype);
 WaterGeyser.prototype.constructor = WaterGeyser;
 
-WaterGeyser.prototype.calculate = function() {
+WaterGeyser.prototype.calculate = function(current) {
     return {
         "water": new Elem(this.get_yield(), 95)
     }
@@ -678,7 +692,7 @@ function CoolSlushGeyser(params) {
 CoolSlushGeyser.prototype = Object.create(Geyser.prototype);
 CoolSlushGeyser.prototype.constructor = CoolSlushGeyser;
 
-CoolSlushGeyser.prototype.calculate = function() {
+CoolSlushGeyser.prototype.calculate = function(current) {
     return {
         "polluted_water": new Elem(this.get_yield(), -10)
     }
@@ -691,7 +705,7 @@ function PollutedWaterVent(params) {
 PollutedWaterVent.prototype = Object.create(Geyser.prototype);
 PollutedWaterVent.prototype.constructor = PollutedWaterVent;
 
-PollutedWaterVent.prototype.calculate = function() {
+PollutedWaterVent.prototype.calculate = function(current) {
     return {
         "polluted_water": new Elem(this.get_yield(), 30)
     }
@@ -704,7 +718,7 @@ function MinorVolcano(params) {
 MinorVolcano.prototype = Object.create(Geyser.prototype);
 MinorVolcano.prototype.constructor = MinorVolcano;
 
-MinorVolcano.prototype.calculate = function() {
+MinorVolcano.prototype.calculate = function(current) {
     return {
         "magma": new Elem(this.get_yield(), 1726.85)
     }
@@ -717,7 +731,7 @@ function Volcano(params) {
 Volcano.prototype = Object.create(Geyser.prototype);
 Volcano.prototype.constructor = Volcano;
 
-Volcano.prototype.calculate = function() {
+Volcano.prototype.calculate = function(current) {
     return {
         "magma": new Elem(this.get_yield(), 1726.85)
     }
@@ -730,7 +744,7 @@ function CarbonDioxideGeyser(params) {
 CarbonDioxideGeyser.prototype = Object.create(Geyser.prototype);
 CarbonDioxideGeyser.prototype.constructor = CarbonDioxideGeyser;
 
-CarbonDioxideGeyser.prototype.calculate = function() {
+CarbonDioxideGeyser.prototype.calculate = function(current) {
     return {
         "carbon_dioxide_liquid": new Elem(this.get_yield(), -55.15)
     }
@@ -743,7 +757,7 @@ function CarbonDioxideVent(params) {
 CarbonDioxideVent.prototype = Object.create(Geyser.prototype);
 CarbonDioxideVent.prototype.constructor = CarbonDioxideVent;
 
-CarbonDioxideVent.prototype.calculate = function() {
+CarbonDioxideVent.prototype.calculate = function(current) {
     return {
         "carbon_dioxide": new Elem(this.get_yield(), 500)
     }
@@ -756,7 +770,7 @@ function HydrogenVent(params) {
 HydrogenVent.prototype = Object.create(Geyser.prototype);
 HydrogenVent.prototype.constructor = HydrogenVent;
 
-HydrogenVent.prototype.calculate = function() {
+HydrogenVent.prototype.calculate = function(current) {
     return {
         "hydrogen": new Elem(this.get_yield(), 500)
     }
@@ -769,7 +783,7 @@ function HotPollutedOxygenVent(params) {
 HotPollutedOxygenVent.prototype = Object.create(Geyser.prototype);
 HotPollutedOxygenVent.prototype.constructor = HotPollutedOxygenVent;
 
-HotPollutedOxygenVent.prototype.calculate = function() {
+HotPollutedOxygenVent.prototype.calculate = function(current) {
     return {
         "polluted_oxygen": new Elem(this.get_yield(), 500)
     }
@@ -782,7 +796,7 @@ function InfectiousPollutedOxygenVent(params) {
 InfectiousPollutedOxygenVent.prototype = Object.create(Geyser.prototype);
 InfectiousPollutedOxygenVent.prototype.constructor = InfectiousPollutedOxygenVent;
 
-InfectiousPollutedOxygenVent.prototype.calculate = function() {
+InfectiousPollutedOxygenVent.prototype.calculate = function(current) {
     return {
         "polluted_oxygen": new Elem(this.get_yield(), 60)
     }
@@ -795,7 +809,7 @@ function ChlorineGasVent(params) {
 ChlorineGasVent.prototype = Object.create(Geyser.prototype);
 ChlorineGasVent.prototype.constructor = ChlorineGasVent;
 
-ChlorineGasVent.prototype.calculate = function() {
+ChlorineGasVent.prototype.calculate = function(current) {
     return {
         "chlorine": new Elem(this.get_yield(), 60)
     }
@@ -808,7 +822,7 @@ function NaturalGasGeyser(params) {
 NaturalGasGeyser.prototype = Object.create(Geyser.prototype);
 NaturalGasGeyser.prototype.constructor = NaturalGasGeyser;
 
-NaturalGasGeyser.prototype.calculate = function() {
+NaturalGasGeyser.prototype.calculate = function(current) {
     return {
         "natural_gas": new Elem(this.get_yield(), 150)
     }
@@ -821,7 +835,7 @@ function CopperVolcano(params) {
 CopperVolcano.prototype = Object.create(Geyser.prototype);
 CopperVolcano.prototype.constructor = CopperVolcano;
 
-CopperVolcano.prototype.calculate = function() {
+CopperVolcano.prototype.calculate = function(current) {
     return {
         "copper_liquid": new Elem(this.get_yield(), 2226.85)
     }
@@ -834,7 +848,7 @@ function IronVolcano(params) {
 IronVolcano.prototype = Object.create(Geyser.prototype);
 IronVolcano.prototype.constructor = IronVolcano;
 
-IronVolcano.prototype.calculate = function() {
+IronVolcano.prototype.calculate = function(current) {
     return {
         "iron_liquid": new Elem(this.get_yield(), 2526.85)
     }
@@ -847,7 +861,7 @@ function GoldVolcano(params) {
 GoldVolcano.prototype = Object.create(Geyser.prototype);
 GoldVolcano.prototype.constructor = GoldVolcano;
 
-GoldVolcano.prototype.calculate = function() {
+GoldVolcano.prototype.calculate = function(current) {
     return {
         "gold_liquid": new Elem(this.get_yield(), 2626.85)
     }
@@ -860,7 +874,7 @@ function LeakyOilFissure(params) {
 LeakyOilFissure.prototype = Object.create(Geyser.prototype);
 LeakyOilFissure.prototype.constructor = LeakyOilFissure;
 
-LeakyOilFissure.prototype.calculate = function() {
+LeakyOilFissure.prototype.calculate = function(current) {
     return {
         "crude_oil": new Elem(this.get_yield(), 326.85)
     }
@@ -874,7 +888,7 @@ function AntiEntropyThermoNullifier (params) {
 AntiEntropyThermoNullifier.prototype = Object.create(Item.prototype);
 AntiEntropyThermoNullifier.prototype.constructor = AntiEntropyThermoNullifier;
 
-AntiEntropyThermoNullifier.prototype.calculate = function() {
+AntiEntropyThermoNullifier.prototype.calculate = function(current) {
     return {
         "hydrogen": new Elem(-10 * CYCLE),
         "heat": -80 * CYCLE
@@ -890,7 +904,7 @@ function Wheezewort (params) {
 Wheezewort.prototype = Object.create(Item.prototype);
 Wheezewort.prototype.constructor = Wheezewort;
 
-Wheezewort.prototype.calculate = function() {
+Wheezewort.prototype.calculate = function(current) {
     const gas = (this.pressure == null || this.pressure > 1000) ? 1000 : this.pressure;
     // Capacity is in dtu so divide 1000 to have kdtu
     const capacity = Base.prototype.elements[this.element] / 1000;
@@ -910,7 +924,7 @@ function Base() {
 
 Base.prototype.keywords = ["Supply", "Cook", "HeatSink", "Energy"];
 Base.prototype.flags = ["lighted"];
-Base.prototype.properties = ["temp", "element", "pressure", 
+Base.prototype.properties = ["temp", "element", "pressure", "blocks",
     "yield_gramm", "eruption_seconds", "every_seconds", "activity_cycles", "every_cycles"];
 
 // (DTU/g)/°C
@@ -1079,7 +1093,7 @@ Base.prototype.objects = {
 
 Base.prototype.merge = function (a, b) {
     const sum = Object.assign(a);
-    const bCalc = b.calculate();
+    const bCalc = b.calculate(sum);
 
     Object.keys(bCalc).forEach(function(k) {
         if(bCalc[k] instanceof Elem){
