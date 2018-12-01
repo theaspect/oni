@@ -58,7 +58,8 @@
                 <a href="javascript:void(0);" onclick="energyRemoval()">Energy Removal</a>
                 <a href="javascript:void(0);" onclick="coolDownVolcano()">Cool Down Volcano</a>
                 <a href="javascript:void(0);" onclick="oilRefineryCycle()">Oil Refinery Cycle</a>
-                <a href="javascript:void(0);" onclick="aetn()">Anti Enthropy Thermo Nullifier</a>
+                <a href="javascript:void(0);" onclick="aetn()">AETN</a>
+                <a href="javascript:void(0);" onclick="wheezewort()">Wheezewort</a>
             </div>
         </div>
         <br/>
@@ -263,6 +264,19 @@
                 "AntiEntropyThermoNullifier",
                 "// 0.5C pre Cycle isn't very impressive",
                 "HeatSink water"
+            ].join("\n"));
+        }
+
+        function wheezewort(){
+            cm.setValue([
+                "// Omitted pressure defaults to 1000g",
+                "5 Wheezewort element=hydrogen",
+                "// You can explicitly specify pressure",
+                "Wheezewort pressure=500 element=hydrogen",
+                "// Wheezewort can't suck up more then 1kg/s",
+                "Wheezewort pressure=1500 element=hydrogen",
+                "// Cool one cell of water",
+                "HeatSink 1000000 water"
             ].join("\n"));
         }
     </script>

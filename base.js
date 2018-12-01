@@ -881,6 +881,26 @@ AntiEntropyThermoNullifier.prototype.calculate = function() {
     }
 }
 
+function Wheezewort (params) {
+    Item.call(params);
+    this.element = params["element"];
+    this.pressure = params["pressure"]
+}
+
+Wheezewort.prototype = Object.create(Item.prototype);
+Wheezewort.prototype.constructor = Wheezewort;
+
+Wheezewort.prototype.calculate = function() {
+    const gas = (this.pressure == null || this.pressure > 1000) ? 1000 : this.pressure;
+    // Capacity is in dtu so divide 1000 to have kdtu
+    const capacity = Base.prototype.elements[this.element] / 1000;
+    const heat = capacity ? -5 * gas * capacity * CYCLE : 0; 
+    return {
+        "heat": heat
+    }
+}
+
+
 /** Base */
 
 function Base() {
@@ -890,7 +910,7 @@ function Base() {
 
 Base.prototype.keywords = ["Supply", "Cook", "HeatSink", "Energy"];
 Base.prototype.flags = ["lighted"];
-Base.prototype.properties = ["temp",
+Base.prototype.properties = ["temp", "element", "pressure", 
     "yield_gramm", "eruption_seconds", "every_seconds", "activity_cycles", "every_cycles"];
 
 // (DTU/g)/°C
@@ -1053,7 +1073,8 @@ Base.prototype.objects = {
     "GoldVolcano": GoldVolcano,
     "LeakyOilFissure": LeakyOilFissure,
 
-    "AntiEntropyThermoNullifier": AntiEntropyThermoNullifier
+    "AntiEntropyThermoNullifier": AntiEntropyThermoNullifier,
+    "Wheezewort": Wheezewort
 };
 
 Base.prototype.merge = function (a, b) {
@@ -1116,7 +1137,7 @@ Base.prototype.calculate = function() {
     }
 
     if(result["heat"]){
-        result.heat = `${result["heat"]} kDtu of energy from devices`
+        result.heat = `${Math.round10(result["heat"], -2)} kDtu of energy from devices`
     }else{
         delete result.heat
     }
