@@ -70,7 +70,7 @@ Elem.prototype.toString = function() {
         return "0 kg";
     } else if (this.mass == Infinity && this.temp == null) {
         return "&infin; kg"
-    } else if (this.mass == Infinity && this.temp == null) {
+    } else if (this.mass == Infinity && this.temp != null) {
         return "&infin; kg of " + Math.round10(this.temp, -2) + "C";
     } else if (this.temp == null){
         return "" + Math.round10(this.mass / 1000, -2) + " kg";
@@ -866,6 +866,21 @@ LeakyOilFissure.prototype.calculate = function() {
     }
 }
 
+/** Special */
+function AntiEntropyThermoNullifier (params) {
+    Item.call(params);
+}
+
+AntiEntropyThermoNullifier.prototype = Object.create(Item.prototype);
+AntiEntropyThermoNullifier.prototype.constructor = AntiEntropyThermoNullifier;
+
+AntiEntropyThermoNullifier.prototype.calculate = function() {
+    return {
+        "hydrogen": new Elem(-10 * CYCLE),
+        "heat": -80 * CYCLE
+    }
+}
+
 /** Base */
 
 function Base() {
@@ -1036,7 +1051,9 @@ Base.prototype.objects = {
     "CopperVolcano": CopperVolcano,
     "IronVolcano": IronVolcano,
     "GoldVolcano": GoldVolcano,
-    "LeakyOilFissure": LeakyOilFissure
+    "LeakyOilFissure": LeakyOilFissure,
+
+    "AntiEntropyThermoNullifier": AntiEntropyThermoNullifier
 };
 
 Base.prototype.merge = function (a, b) {
@@ -1084,10 +1101,11 @@ Base.prototype.calculate = function() {
 
         // Heat value is in kDtu but elements value is dtu/g/C
         const delta = balance / (this.elements[this.heatSink.elem] * this.heatSink.mass)
+        const mass = this.heatSink.mass == Infinity ? "&infin;" : Math.round10(this.heatSink.mass/1000, -2);
         if(this.heatSink.temp != null){
-            result.sink = `${Math.round10(balance/1000, -2)} kDtu sinked to ${Math.round10(this.heatSink.mass/1000, -2)}kg of ${this.heatSink.elem} will change temp from ${Math.round10(this.heatSink.temp,-2)}C to ${Math.round10(this.heatSink.temp + delta, -2)}C`
+            result.sink = `${Math.round10(balance/1000, -2)} kDtu sinked to ${mass}kg of ${this.heatSink.elem} will change temp from ${Math.round10(this.heatSink.temp,-2)}C to ${Math.round10(this.heatSink.temp + delta, -2)}C`
         }else{
-            result.sink = `${Math.round10(balance/1000, -2)} kDtu sinked to ${Math.round10(this.heatSink.mass/1000, -2)}kg of ${this.heatSink.elem} will change temp for ${Math.round10(delta, -2)}C`
+            result.sink = `${Math.round10(balance/1000, -2)} kDtu sinked to ${mass}kg of ${this.heatSink.elem} will change temp for ${Math.round10(delta, -2)}C`
         }
     }
 

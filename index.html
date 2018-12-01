@@ -55,6 +55,7 @@
                 <a href="javascript:void(0);" onclick="energyRemoval()">Energy Removal</a>
                 <a href="javascript:void(0);" onclick="coolDownVolcano()">Cool Down Volcano</a>
                 <a href="javascript:void(0);" onclick="oilRefineryCycle()">Oil Refinery Cycle</a>
+                <a href="javascript:void(0);" onclick="aetn()">Anti Enthropy Thermo Nullifier</a>
             </div>
         </div>
         <br/>
@@ -248,6 +249,17 @@
                 "4 Compost",
                 "6 Electrolyzer",
                 "8 HydrogenGenerator",
+            ].join("\n"));
+        }
+
+        function aetn(){
+            cm.setValue([
+                "// Let we have 5x5 square of hot water",
+                "Supply water temp = 90",
+                "Supply hydrogen",
+                "AntiEntropyThermoNullifier",
+                "// 0.5C pre Cycle isn't very impressive",
+                "HeatSink water"
             ].join("\n"));
         }
     </script>
